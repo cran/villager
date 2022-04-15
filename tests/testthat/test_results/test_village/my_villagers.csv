@@ -1,0 +1,4 @@
+identifier,first_name,last_name,mother_id,father_id,profession,partner,gender,alive,age,health
+0dd6cab5-e3fb-4605-84bb-70f4414114fa,Kirsten,Taylor,NA,NA,Farmer,e2ab27b4-ba9d-4233-844a-8cd55191dd9f,NA,TRUE,13873,100
+e2ab27b4-ba9d-4233-844a-8cd55191dd9f,Joshua,Thompson,NA,NA,Farmer,0dd6cab5-e3fb-4605-84bb-70f4414114fa,NA,TRUE,12048,100
+cdeb7036-cad1-4136-be69-7c0d7226b84b,Mariylyyn,Thompson,0dd6cab5-e3fb-4605-84bb-70f4414114fa,e2ab27b4-ba9d-4233-844a-8cd55191dd9f,Farmer,NA,NA,TRUE,14968,100
