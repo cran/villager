@@ -9,12 +9,12 @@ A class responsible for the simulation data to disk.
 }
 \details{
 This class can be subclasses to provide advanced data writing to other data sources. This should also
-be subclassed if the winik and resource classes are subclasses, to write any addional fields to the data source.
+be subclassed if the agent and resource classes are subclasses, to write any additional fields to the data source.
 }
 \section{Methods}{
 
 \describe{
-\item{\code{write()}}{Writes the winik and resources to disk.}
+\item{\code{write()}}{Writes the agent and resources to disk.}
 }
 Create a new data writer.
 }
@@ -22,9 +22,9 @@ Create a new data writer.
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{results_directory}}{The folder where the simulation resulst are written to}
+\item{\code{results_directory}}{The folder where the simulation results are written to}
 
-\item{\code{winik_filename}}{The location where the winiks are written to}
+\item{\code{agent_filename}}{The location where the agents are written to}
 
 \item{\code{resource_filename}}{The location where the resources are written to}
 }
@@ -33,20 +33,20 @@ Create a new data writer.
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{data_writer$new()}}
-\item \href{#method-write}{\code{data_writer$write()}}
-\item \href{#method-clone}{\code{data_writer$clone()}}
+\item \href{#method-data_writer-new}{\code{data_writer$new()}}
+\item \href{#method-data_writer-write}{\code{data_writer$write()}}
+\item \href{#method-data_writer-clone}{\code{data_writer$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-data_writer-new"></a>}}
+\if{latex}{\out{\hypertarget{method-data_writer-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new data writer object that has optional paths for data files.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{data_writer$new(
   results_directory = "results",
-  winik_filename = "winiks.csv",
+  agent_filename = "agents.csv",
   resource_filename = "resources.csv"
 )}\if{html}{\out{</div>}}
 }
@@ -56,22 +56,22 @@ Creates a new data writer object that has optional paths for data files.
 \describe{
 \item{\code{results_directory}}{The directory where the results file is written to}
 
-\item{\code{winik_filename}}{The name of the file for the winik data}
+\item{\code{agent_filename}}{The name of the file for the agent data}
 
 \item{\code{resource_filename}}{The name of the file for the resource data}
 }
 \if{html}{\out{</div>}}
 }
 \subsection{Returns}{
-A new winik object
+A new agent object
 Writes a village's state to disk.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-write"></a>}}
-\if{latex}{\out{\hypertarget{method-write}{}}}
+\if{html}{\out{<a id="method-data_writer-write"></a>}}
+\if{latex}{\out{\hypertarget{method-data_writer-write}{}}}
 \subsection{Method \code{write()}}{
-Takes a state an the name of a village and writes the winiks and resources to disk
+Takes a state an the name of a village and writes the agents and resources to disk
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{data_writer$write(state, village_name)}\if{html}{\out{</div>}}
 }
@@ -90,8 +90,8 @@ None
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-data_writer-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-data_writer-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

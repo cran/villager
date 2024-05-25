@@ -35,7 +35,7 @@ different village variables. This class can be subclassed to include more variab
 
 \item{\code{model_data}}{Optional data that models may need}
 
-\item{\code{winik_mgr}}{The manager that handles all of the winiks}
+\item{\code{agent_mgr}}{The manager that handles all of the agents}
 
 \item{\code{resource_mgr}}{The manager that handles all of the resources
 Initializes a village}
@@ -45,15 +45,15 @@ Initializes a village}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{village$new()}}
-\item \href{#method-propagate}{\code{village$propagate()}}
-\item \href{#method-set_initial_state}{\code{village$set_initial_state()}}
-\item \href{#method-clone}{\code{village$clone()}}
+\item \href{#method-village-new}{\code{village$new()}}
+\item \href{#method-village-propagate}{\code{village$propagate()}}
+\item \href{#method-village-set_initial_state}{\code{village$set_initial_state()}}
+\item \href{#method-village-clone}{\code{village$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-village-new"></a>}}
+\if{latex}{\out{\hypertarget{method-village-new}{}}}
 \subsection{Method \code{new()}}{
 This method is meant to set the variables that are needed for a village to propagate through
 time.
@@ -62,7 +62,7 @@ time.
   name,
   initial_condition,
   models = list(),
-  winik_class = villager::winik,
+  agent_class = villager::agent,
   resource_class = villager::resource
 )}\if{html}{\out{</div>}}
 }
@@ -76,7 +76,7 @@ time.
 
 \item{\code{models}}{A list of functions or a single function that should be run at each time step}
 
-\item{\code{winik_class}}{The class that's being used to represent agents}
+\item{\code{agent_class}}{The class that's being used to represent agents}
 
 \item{\code{resource_class}}{The class being used to describe the resources
 Propagates the village a single time step}
@@ -85,8 +85,8 @@ Propagates the village a single time step}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-propagate"></a>}}
-\if{latex}{\out{\hypertarget{method-propagate}{}}}
+\if{html}{\out{<a id="method-village-propagate"></a>}}
+\if{latex}{\out{\hypertarget{method-village-propagate}{}}}
 \subsection{Method \code{propagate()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{village$propagate(current_step)}\if{html}{\out{</div>}}
@@ -110,8 +110,8 @@ Runs the user defined function that sets the initial state of the village
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-set_initial_state"></a>}}
-\if{latex}{\out{\hypertarget{method-set_initial_state}{}}}
+\if{html}{\out{<a id="method-village-set_initial_state"></a>}}
+\if{latex}{\out{\hypertarget{method-village-set_initial_state}{}}}
 \subsection{Method \code{set_initial_state()}}{
 Runs the initial condition model
 \subsection{Usage}{
@@ -120,8 +120,8 @@ Runs the initial condition model
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-village-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-village-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

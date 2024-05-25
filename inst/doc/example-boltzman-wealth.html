@@ -12,7 +12,7 @@
 
 
 
-<title>extending-agents</title>
+<title>Boltzman Wealth</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -4400,168 +4400,220 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 
 
-<h1 class="title toc-ignore">extending-agents</h1>
+<h1 class="title toc-ignore">Boltzman Wealth</h1>
 
 
 
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a></span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">library</span>(villager)</span>
 <span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="fu">library</span>(leaflet)</span></code></pre></div>
-<div id="extending-agents" class="section level1">
-<h1>Extending Agents</h1>
-<p>To create agents (agents) that have more properties than the ones
-provided by <em>villager</em>, subclass the <code>agent</code> class
-into a new R6 class. Once sub-classed, additional properties can be
-added to the agent which can be used in the subsequent model. The new
-agent class can be tied to individual villages. This gives flexibility
-to model populations differently when running under the same
-simulation.</p>
-<p>To add new members to the agent class,</p>
-<ol style="list-style-type: decimal">
-<li>Copy the <em>agent</em> class source code</li>
-<li>Create the new member variable</li>
-<li>Add it as a parameter to the <code>initialize</code> function</li>
-<li>Make an entry for it in the <code>as_table</code> function</li>
-</ol>
-<div id="agent-with-a-gps-coordinate" class="section level2">
-<h2>Agent with a GPS coordinate</h2>
-<p>To give a complete example of the sublclassing process, consider an
-extended agent. In this case the agent has an additional property,
-<code>gps_coordinates</code>, that’s a named list of latitude and
-longitude coordinates: [lat=1234, long=1234]. Each coordinate gets
-updated by the model each day by a random number.</p>
-<p>To start the base class off, the original class was copied to save
-time with the member variable definitions.</p>
-<div id="custom-agent-class" class="section level3">
-<h3>Custom agent class</h3>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>gps_agent <span class="ot">&lt;-</span> R6<span class="sc">::</span><span class="fu">R6Class</span>(<span class="st">&quot;agent&quot;</span>,</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">inherit =</span> villager<span class="sc">::</span>agent,</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">public =</span> <span class="fu">list</span>(</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="at">age =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>    <span class="at">alive =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>    <span class="at">children =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    <span class="at">father_id =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="at">first_name =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>    <span class="at">gender =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>    <span class="at">health =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>    <span class="at">identifier =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>    <span class="at">last_name =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>    <span class="at">mother_id =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>    <span class="at">partner =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>    <span class="at">profession =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a>    <span class="at">latitude =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a>    <span class="at">longitude =</span> <span class="cn">NULL</span>,</span>
-<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">identifier =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a>                          <span class="at">first_name =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a>                          <span class="at">last_name =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a>                          <span class="at">age =</span> <span class="dv">0</span>,</span>
-<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a>                          <span class="at">mother_id =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a>                          <span class="at">father_id =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a>                          <span class="at">partner =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a>                          <span class="at">children =</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;character&quot;</span>),</span>
-<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a>                          <span class="at">gender =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-28"><a href="#cb2-28" tabindex="-1"></a>                          <span class="at">profession =</span> <span class="cn">NA</span>,</span>
-<span id="cb2-29"><a href="#cb2-29" tabindex="-1"></a>                          <span class="at">alive =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb2-30"><a href="#cb2-30" tabindex="-1"></a>                          <span class="at">health =</span> <span class="dv">100</span>,</span>
-<span id="cb2-31"><a href="#cb2-31" tabindex="-1"></a>                          <span class="at">latitude =</span> <span class="dv">0</span>,</span>
-<span id="cb2-32"><a href="#cb2-32" tabindex="-1"></a>                          <span class="at">longitude =</span> <span class="dv">0</span>) {</span>
-<span id="cb2-33"><a href="#cb2-33" tabindex="-1"></a>    super<span class="sc">$</span><span class="fu">initialize</span>(identifier,</span>
-<span id="cb2-34"><a href="#cb2-34" tabindex="-1"></a>                     first_name,</span>
-<span id="cb2-35"><a href="#cb2-35" tabindex="-1"></a>                     last_name,</span>
-<span id="cb2-36"><a href="#cb2-36" tabindex="-1"></a>                     age,</span>
-<span id="cb2-37"><a href="#cb2-37" tabindex="-1"></a>                     mother_id,</span>
-<span id="cb2-38"><a href="#cb2-38" tabindex="-1"></a>                     father_id,</span>
-<span id="cb2-39"><a href="#cb2-39" tabindex="-1"></a>                     partner,</span>
-<span id="cb2-40"><a href="#cb2-40" tabindex="-1"></a>                     children,</span>
-<span id="cb2-41"><a href="#cb2-41" tabindex="-1"></a>                     gender,</span>
-<span id="cb2-42"><a href="#cb2-42" tabindex="-1"></a>                     profession,</span>
-<span id="cb2-43"><a href="#cb2-43" tabindex="-1"></a>                     alive,</span>
-<span id="cb2-44"><a href="#cb2-44" tabindex="-1"></a>                     health)</span>
-<span id="cb2-45"><a href="#cb2-45" tabindex="-1"></a>      self<span class="sc">$</span>latitude <span class="ot">&lt;-</span> latitude</span>
-<span id="cb2-46"><a href="#cb2-46" tabindex="-1"></a>      self<span class="sc">$</span>longitude <span class="ot">&lt;-</span> longitude</span>
-<span id="cb2-47"><a href="#cb2-47" tabindex="-1"></a>    },</span>
-<span id="cb2-48"><a href="#cb2-48" tabindex="-1"></a></span>
-<span id="cb2-49"><a href="#cb2-49" tabindex="-1"></a>    <span class="at">as_table =</span> <span class="cf">function</span>() {</span>
-<span id="cb2-50"><a href="#cb2-50" tabindex="-1"></a>      agent_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb2-51"><a href="#cb2-51" tabindex="-1"></a>        <span class="at">age =</span> self<span class="sc">$</span>age,</span>
-<span id="cb2-52"><a href="#cb2-52" tabindex="-1"></a>        <span class="at">alive =</span> self<span class="sc">$</span>alive,</span>
-<span id="cb2-53"><a href="#cb2-53" tabindex="-1"></a>        <span class="at">father_id =</span> self<span class="sc">$</span>father_id,</span>
-<span id="cb2-54"><a href="#cb2-54" tabindex="-1"></a>        <span class="at">first_name =</span> self<span class="sc">$</span>first_name,</span>
-<span id="cb2-55"><a href="#cb2-55" tabindex="-1"></a>        <span class="at">gender =</span> self<span class="sc">$</span>gender,</span>
-<span id="cb2-56"><a href="#cb2-56" tabindex="-1"></a>        <span class="at">health =</span> self<span class="sc">$</span>health,</span>
-<span id="cb2-57"><a href="#cb2-57" tabindex="-1"></a>        <span class="at">identifier =</span> self<span class="sc">$</span>identifier,</span>
-<span id="cb2-58"><a href="#cb2-58" tabindex="-1"></a>        <span class="at">last_name =</span> self<span class="sc">$</span>last_name,</span>
-<span id="cb2-59"><a href="#cb2-59" tabindex="-1"></a>        <span class="at">mother_id =</span> self<span class="sc">$</span>mother_id,</span>
-<span id="cb2-60"><a href="#cb2-60" tabindex="-1"></a>        <span class="at">partner =</span> self<span class="sc">$</span>partner,</span>
-<span id="cb2-61"><a href="#cb2-61" tabindex="-1"></a>        <span class="at">profession =</span> self<span class="sc">$</span>profession,</span>
-<span id="cb2-62"><a href="#cb2-62" tabindex="-1"></a>        <span class="at">latitude =</span> self<span class="sc">$</span>latitude,</span>
-<span id="cb2-63"><a href="#cb2-63" tabindex="-1"></a>        <span class="at">longitude =</span> self<span class="sc">$</span>longitude</span>
-<span id="cb2-64"><a href="#cb2-64" tabindex="-1"></a>      )</span>
-<span id="cb2-65"><a href="#cb2-65" tabindex="-1"></a>      <span class="fu">return</span>(agent_table)</span>
-<span id="cb2-66"><a href="#cb2-66" tabindex="-1"></a>    }</span>
-<span id="cb2-67"><a href="#cb2-67" tabindex="-1"></a>  )</span>
-<span id="cb2-68"><a href="#cb2-68" tabindex="-1"></a>)</span></code></pre></div>
+<div id="wealth-exchange" class="section level1">
+<h1>Wealth Exchange</h1>
+<p>In this model, agents are confined to a bounding box where they move
+randomly. When two agents are within close range of another, they
+exchange $1. At the end of the simulation, the wealth distribution is
+shown as a bar plot. This example was inspired by the “Boltzman Wealth
+Distribution” model example from Project Mesa.</p>
+<div id="location" class="section level2">
+<h2>Location</h2>
+<p>This simulation takes place in Central Park, New York. The bounding
+box of the simulation area is shown on the map below.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>bounds <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">latitude =</span> <span class="fu">numeric</span>(<span class="dv">0</span>), <span class="at">longitude =</span> <span class="fu">numeric</span>(<span class="dv">0</span>));</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="co"># Add the top left point</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>bounds[<span class="fu">nrow</span>(bounds) <span class="sc">+</span> <span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">40.772457</span>, <span class="sc">-</span><span class="fl">73.975962</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co"># Add the top right point</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>bounds[<span class="fu">nrow</span>(bounds) <span class="sc">+</span> <span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">40.772457</span>, <span class="sc">-</span><span class="fl">73.974053</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># Add the bottom left point</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>bounds[<span class="fu">nrow</span>(bounds) <span class="sc">+</span> <span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">40.771430</span>, <span class="sc">-</span><span class="fl">73.975962</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co"># Add the bottom right point</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>bounds[<span class="fu">nrow</span>(bounds) <span class="sc">+</span> <span class="dv">1</span>,] <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">40.771430</span>, <span class="sc">-</span><span class="fl">73.974053</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># Plot them</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>leaflet<span class="sc">::</span><span class="fu">leaflet</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  leaflet<span class="sc">::</span><span class="fu">addTiles</span>() <span class="sc">%&gt;%</span>  <span class="co"># Add default OpenStreetMap map tiles</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  leaflet<span class="sc">::</span><span class="fu">addMarkers</span> (<span class="at">data =</span> bounds) <span class="co"># Add agent locations</span></span></code></pre></div>
+<div class="leaflet html-widget html-fill-item" id="htmlwidget-382b6cbbc5d9c4ccd2ac" style="width:288px;height:288px;"></div>
+<script type="application/json" data-for="htmlwidget-382b6cbbc5d9c4ccd2ac">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[40.772457,40.772457,40.77143,40.77143],[-73.975962,-73.974053,-73.975962,-73.974053],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[40.77143,40.772457],"lng":[-73.975962,-73.974053]}},"evals":[],"jsHooks":[]}</script>
 </div>
-<div id="initial-condition" class="section level3">
-<h3>Initial Condition</h3>
-<p>We’ll create the initial population of one Agent in the
-<code>initial_condition</code> function, which gets run before the model
-starts. The initial starting location is in Los Angeles, Ca. Note that
-the new <code>gps_agent</code> class is used to instantiate the agent
-rather than the library provided <code>agent</code> class.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>initial_condition <span class="ot">&lt;-</span> <span class="cf">function</span>(current_state, model_data, agent_mgr, resource_mgr) {</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="co"># Create the initial villagers</span></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  test_agent <span class="ot">&lt;-</span> gps_agent<span class="sc">$</span><span class="fu">new</span>(<span class="at">first_name=</span><span class="st">&quot;Lewis&quot;</span>, <span class="at">last_name=</span><span class="st">&quot;Taylor&quot;</span>, <span class="at">age=</span><span class="dv">9125</span>, <span class="at">latitude=</span><span class="fl">33.8785486</span>, <span class="at">longitude=</span><span class="sc">-</span><span class="fl">118.0434921</span>)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  agent_mgr<span class="sc">$</span><span class="fu">add_agent</span>(test_agent)</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>}</span></code></pre></div>
+<div id="extended-agent" class="section level2">
+<h2>Extended Agent</h2>
+<p>In this example, each agent has its own latitude and longitude. The
+extended agent class for this follows. For more information on extending
+agents, check the <code>extending-agents</code> vignette.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>gps_agent <span class="ot">&lt;-</span> R6<span class="sc">::</span><span class="fu">R6Class</span>(<span class="st">&quot;agent&quot;</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">inherit =</span> villager<span class="sc">::</span>agent,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">public =</span> <span class="fu">list</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>    <span class="at">age =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="at">alive =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>    <span class="at">children =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>    <span class="at">father_id =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>    <span class="at">first_name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>    <span class="at">gender =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>    <span class="at">health =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>    <span class="at">identifier =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>    <span class="at">last_name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>    <span class="at">mother_id =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>    <span class="at">partner =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>    <span class="at">profession =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>    <span class="at">latitude =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>    <span class="at">longitude =</span> <span class="cn">NULL</span>,</span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>    <span class="at">initialize =</span> <span class="cf">function</span>(<span class="at">identifier =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>                          <span class="at">first_name =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>                          <span class="at">last_name =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>                          <span class="at">age =</span> <span class="dv">0</span>,</span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>                          <span class="at">mother_id =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>                          <span class="at">father_id =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>                          <span class="at">partner =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>                          <span class="at">children =</span> <span class="fu">vector</span>(<span class="at">mode =</span> <span class="st">&quot;character&quot;</span>),</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>                          <span class="at">gender =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>                          <span class="at">profession =</span> <span class="cn">NA</span>,</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>                          <span class="at">alive =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>                          <span class="at">health =</span> <span class="dv">100</span>,</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>                          <span class="at">latitude =</span> <span class="dv">0</span>,</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>                          <span class="at">longitude =</span> <span class="dv">0</span>) {</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>    super<span class="sc">$</span><span class="fu">initialize</span>(identifier,</span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>                     first_name,</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>                     last_name,</span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>                     age,</span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a>                     mother_id,</span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a>                     father_id,</span>
+<span id="cb3-39"><a href="#cb3-39" tabindex="-1"></a>                     partner,</span>
+<span id="cb3-40"><a href="#cb3-40" tabindex="-1"></a>                     children,</span>
+<span id="cb3-41"><a href="#cb3-41" tabindex="-1"></a>                     gender,</span>
+<span id="cb3-42"><a href="#cb3-42" tabindex="-1"></a>                     profession,</span>
+<span id="cb3-43"><a href="#cb3-43" tabindex="-1"></a>                     alive,</span>
+<span id="cb3-44"><a href="#cb3-44" tabindex="-1"></a>                     health)</span>
+<span id="cb3-45"><a href="#cb3-45" tabindex="-1"></a>      self<span class="sc">$</span>latitude <span class="ot">&lt;-</span> latitude</span>
+<span id="cb3-46"><a href="#cb3-46" tabindex="-1"></a>      self<span class="sc">$</span>longitude <span class="ot">&lt;-</span> longitude</span>
+<span id="cb3-47"><a href="#cb3-47" tabindex="-1"></a>    },</span>
+<span id="cb3-48"><a href="#cb3-48" tabindex="-1"></a></span>
+<span id="cb3-49"><a href="#cb3-49" tabindex="-1"></a>    <span class="at">as_table =</span> <span class="cf">function</span>() {</span>
+<span id="cb3-50"><a href="#cb3-50" tabindex="-1"></a>      agent_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb3-51"><a href="#cb3-51" tabindex="-1"></a>        <span class="at">age =</span> self<span class="sc">$</span>age,</span>
+<span id="cb3-52"><a href="#cb3-52" tabindex="-1"></a>        <span class="at">alive =</span> self<span class="sc">$</span>alive,</span>
+<span id="cb3-53"><a href="#cb3-53" tabindex="-1"></a>        <span class="at">father_id =</span> self<span class="sc">$</span>father_id,</span>
+<span id="cb3-54"><a href="#cb3-54" tabindex="-1"></a>        <span class="at">first_name =</span> self<span class="sc">$</span>first_name,</span>
+<span id="cb3-55"><a href="#cb3-55" tabindex="-1"></a>        <span class="at">gender =</span> self<span class="sc">$</span>gender,</span>
+<span id="cb3-56"><a href="#cb3-56" tabindex="-1"></a>        <span class="at">health =</span> self<span class="sc">$</span>health,</span>
+<span id="cb3-57"><a href="#cb3-57" tabindex="-1"></a>        <span class="at">identifier =</span> self<span class="sc">$</span>identifier,</span>
+<span id="cb3-58"><a href="#cb3-58" tabindex="-1"></a>        <span class="at">last_name =</span> self<span class="sc">$</span>last_name,</span>
+<span id="cb3-59"><a href="#cb3-59" tabindex="-1"></a>        <span class="at">mother_id =</span> self<span class="sc">$</span>mother_id,</span>
+<span id="cb3-60"><a href="#cb3-60" tabindex="-1"></a>        <span class="at">partner =</span> self<span class="sc">$</span>partner,</span>
+<span id="cb3-61"><a href="#cb3-61" tabindex="-1"></a>        <span class="at">profession =</span> self<span class="sc">$</span>profession,</span>
+<span id="cb3-62"><a href="#cb3-62" tabindex="-1"></a>        <span class="at">latitude =</span> self<span class="sc">$</span>latitude,</span>
+<span id="cb3-63"><a href="#cb3-63" tabindex="-1"></a>        <span class="at">longitude =</span> self<span class="sc">$</span>longitude</span>
+<span id="cb3-64"><a href="#cb3-64" tabindex="-1"></a>      )</span>
+<span id="cb3-65"><a href="#cb3-65" tabindex="-1"></a>      <span class="fu">return</span>(agent_table)</span>
+<span id="cb3-66"><a href="#cb3-66" tabindex="-1"></a>    }</span>
+<span id="cb3-67"><a href="#cb3-67" tabindex="-1"></a>  )</span>
+<span id="cb3-68"><a href="#cb3-68" tabindex="-1"></a>)</span></code></pre></div>
 </div>
-<div id="model" class="section level3">
-<h3>Model</h3>
-<p>Each day, the model picks a number between 0.0000001 and 0.0000003
-and increments <code>gps_coordinate</code> on the agent.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>test_model <span class="ot">&lt;-</span> <span class="cf">function</span>(current_state, previous_state, model_data, agent_mgr, resource_mgr) {</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="co"># Loop over all the agents (just one at the moment)</span></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="cf">for</span> (agent <span class="cf">in</span> agent_mgr<span class="sc">$</span><span class="fu">get_living_agents</span>()) {</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>    <span class="co"># Generate new coordinates</span></span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    latitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>latitude <span class="sc">+</span> <span class="fu">runif</span>(<span class="dv">1</span>, <span class="fl">0.01</span>, <span class="fl">0.03</span>)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    longitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>longitude <span class="sc">+</span> <span class="fu">runif</span>(<span class="dv">1</span>, <span class="fl">0.01</span>, <span class="fl">0.03</span>)</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>    agent<span class="sc">$</span>latitude <span class="ot">&lt;-</span> latitude</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    agent<span class="sc">$</span>longitude <span class="ot">&lt;-</span> longitude</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  }</span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>}</span></code></pre></div>
+<div id="initial-condition" class="section level2">
+<h2>Initial Condition</h2>
+<p>The simulation initial conditions are: - There are 10 agents - Each
+agent starts with $10 - The agents start in the center of the bounding
+box</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>initial_condition <span class="ot">&lt;-</span> <span class="cf">function</span>(current_state, model_data, agent_mgr, resource_mgr) {</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="co"># Set the bounding box coordinates by specifying a single point and the max distance that the other corners are</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  model_data<span class="sc">$</span>events <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">top_left=</span><span class="fu">list</span>(<span class="fl">40.772457</span>, <span class="sc">-</span><span class="fl">73.975962</span>), <span class="at">bottom_right=</span><span class="fu">list</span>(<span class="fl">40.771430</span>, <span class="sc">-</span><span class="fl">73.974053</span>))</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="co"># Create the initial agents (10 of them)</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq</span>(<span class="dv">10</span>)){</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>    agent_lat <span class="ot">&lt;-</span> <span class="fl">40.77197975</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>    agent_long <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fl">73.9750075</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    agent <span class="ot">&lt;-</span> gps_agent<span class="sc">$</span><span class="fu">new</span>(<span class="at">identifier=</span>i, <span class="at">latitude=</span>agent_lat, <span class="at">longitude=</span>agent_long)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>    agent_mgr<span class="sc">$</span><span class="fu">add_agent</span>(agent)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>    <span class="co"># Create the associated money resource</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>    money <span class="ot">&lt;-</span> villager<span class="sc">::</span>resource<span class="sc">$</span><span class="fu">new</span>(agent<span class="sc">$</span>identifier, <span class="at">quantity=</span><span class="dv">10</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>    resource_mgr<span class="sc">$</span><span class="fu">add_resource</span>(money)</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  }</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>}</span></code></pre></div>
 </div>
+<div id="model" class="section level2">
+<h2>Model</h2>
+<p>The model works by first moving an agent by a random amount. This is
+equivalent to a random walk. During this process, it’s checked whether
+or not the agent will over-step the bounding box. If they are, the sign
+of movement is changed so that they move in the opposite direction from
+the boundary-thus avoiding stepping outside.</p>
+<p>Next, The agent checks to see if it’s within trading distance of any
+agents other than itself. If it is, $1 is reduced from its resource
+cache and is added to the neighbor agent.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>test_model <span class="ot">&lt;-</span> <span class="cf">function</span>(current_state, previous_state, model_data, agent_mgr, resource_mgr) {</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="co"># Loop over each agent and move them</span></span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="cf">for</span> (agent <span class="cf">in</span> agent_mgr<span class="sc">$</span><span class="fu">get_living_agents</span>()) {</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="co"># Generate new coordinates</span></span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    delta_lat <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="fl">0.00006</span>, <span class="fl">0.00006</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    latitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>latitude <span class="sc">+</span> delta_lat</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>    delta_long <span class="ot">&lt;-</span> <span class="fu">runif</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="fl">0.00006</span>, <span class="fl">0.00006</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>    longitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>longitude <span class="sc">+</span> delta_long</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>    <span class="co"># See if the agent runs out of bounds on the North and West sides</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>    <span class="cf">if</span> (longitude <span class="sc">&lt;</span> model_data<span class="sc">$</span>events<span class="sc">$</span>top_left[[<span class="dv">2</span>]] ) {</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>      <span class="co"># The agent is too far West</span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>      longitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>longitude <span class="sc">-</span> delta_long</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>    }</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>    <span class="cf">if</span> (latitude <span class="sc">&gt;</span> model_data<span class="sc">$</span>events<span class="sc">$</span>top_left[[<span class="dv">1</span>]]) {</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>      <span class="co"># The agent is too far North</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>      latitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>latitude <span class="sc">-</span> delta_lat</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>    }</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>    <span class="co"># See if the agent runs out of bounds on the South and East sides</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>    <span class="cf">if</span> (longitude <span class="sc">&gt;</span> model_data<span class="sc">$</span>events<span class="sc">$</span>bottom_right[[<span class="dv">2</span>]]) {</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>      <span class="co"># The agent is too far East</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>      longitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>longitude <span class="sc">-</span> <span class="fu">abs</span>(delta_long)</span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    }</span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>    <span class="cf">if</span> (latitude <span class="sc">&lt;</span> model_data<span class="sc">$</span>events<span class="sc">$</span>bottom_right[[<span class="dv">1</span>]] ) {</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>      <span class="co"># The agent is too far South</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a>      latitude <span class="ot">&lt;-</span> agent<span class="sc">$</span>latitude <span class="sc">-</span> delta_lat</span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a>    }</span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a>    </span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a>    agent<span class="sc">$</span>latitude <span class="ot">&lt;-</span> latitude</span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a>    agent<span class="sc">$</span>longitude <span class="ot">&lt;-</span> longitude</span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a>    <span class="co"># Avoid trading with itseld</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a>    <span class="cf">for</span> (neighbor_agent <span class="cf">in</span> agent_mgr<span class="sc">$</span><span class="fu">get_living_agents</span>()) {</span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a>      <span class="cf">if</span> (neighbor_agent<span class="sc">$</span>identifier <span class="sc">==</span> agent<span class="sc">$</span>identifier) {</span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a>        <span class="cf">next</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a>      }</span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a>    <span class="co"># Check to see if the neighbor is within this agent&#39;s trading region</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a>    lat_range <span class="ot">=</span> <span class="fu">abs</span>(neighbor_agent<span class="sc">$</span>latitude <span class="sc">-</span> agent<span class="sc">$</span>latitude)</span>
+<span id="cb5-38"><a href="#cb5-38" tabindex="-1"></a>    long_range <span class="ot">=</span> <span class="fu">abs</span>(neighbor_agent<span class="sc">$</span>longitude <span class="sc">-</span> agent<span class="sc">$</span>longitude)</span>
+<span id="cb5-39"><a href="#cb5-39" tabindex="-1"></a>    <span class="cf">if</span> (lat_range <span class="sc">&lt;</span> <span class="fl">0.000001</span> <span class="sc">||</span> long_range <span class="sc">&lt;</span> <span class="fl">0.000001</span> ) {</span>
+<span id="cb5-40"><a href="#cb5-40" tabindex="-1"></a>      <span class="co"># Remove $1 from the agent that&#39;s currently moving</span></span>
+<span id="cb5-41"><a href="#cb5-41" tabindex="-1"></a>      money <span class="ot">&lt;-</span> resource_mgr<span class="sc">$</span><span class="fu">get_resource</span>(agent<span class="sc">$</span>identifier)</span>
+<span id="cb5-42"><a href="#cb5-42" tabindex="-1"></a>      <span class="co"># Skip the transfer if the agent doesn&#39;t have enough money</span></span>
+<span id="cb5-43"><a href="#cb5-43" tabindex="-1"></a>      <span class="cf">if</span> (money<span class="sc">$</span>quantity <span class="sc">&lt;=</span> <span class="dv">0</span>) {</span>
+<span id="cb5-44"><a href="#cb5-44" tabindex="-1"></a>        <span class="cf">next</span></span>
+<span id="cb5-45"><a href="#cb5-45" tabindex="-1"></a>      }</span>
+<span id="cb5-46"><a href="#cb5-46" tabindex="-1"></a>      money<span class="sc">$</span>quantity <span class="ot">&lt;-</span> money<span class="sc">$</span>quantity <span class="sc">-</span> <span class="dv">1</span></span>
+<span id="cb5-47"><a href="#cb5-47" tabindex="-1"></a>      <span class="co"># Give it to the neighbor</span></span>
+<span id="cb5-48"><a href="#cb5-48" tabindex="-1"></a>      money <span class="ot">&lt;-</span> resource_mgr<span class="sc">$</span><span class="fu">get_resource</span>(neighbor_agent<span class="sc">$</span>identifier)</span>
+<span id="cb5-49"><a href="#cb5-49" tabindex="-1"></a>      money<span class="sc">$</span>quantity <span class="ot">&lt;-</span> money<span class="sc">$</span>quantity <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb5-50"><a href="#cb5-50" tabindex="-1"></a>    }</span>
+<span id="cb5-51"><a href="#cb5-51" tabindex="-1"></a>  }</span>
+<span id="cb5-52"><a href="#cb5-52" tabindex="-1"></a>  }</span>
+<span id="cb5-53"><a href="#cb5-53" tabindex="-1"></a>}</span></code></pre></div>
 <div id="running" class="section level3">
 <h3>Running</h3>
-<p>Finally, we’ll create and run a simulation with a duration of 10
-days.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>los_angeles <span class="ot">&lt;-</span> village<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;Test_Village&quot;</span>, initial_condition, test_model, gps_agent)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>simulator <span class="ot">&lt;-</span> simulation<span class="sc">$</span><span class="fu">new</span>(<span class="dv">10</span>, <span class="fu">list</span>(los_angeles))</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>simulator<span class="sc">$</span><span class="fu">run_model</span>()</span></code></pre></div>
+<p>Create and run a simulation of 10,000 steps.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>los_angeles <span class="ot">&lt;-</span> village<span class="sc">$</span><span class="fu">new</span>(<span class="st">&quot;Central_Park&quot;</span>, initial_condition, test_model, gps_agent)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>simulator <span class="ot">&lt;-</span> simulation<span class="sc">$</span><span class="fu">new</span>(<span class="dv">10000</span>, <span class="fu">list</span>(los_angeles))</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>simulator<span class="sc">$</span><span class="fu">run_model</span>()</span></code></pre></div>
 </div>
 <div id="results" class="section level3">
 <h3>Results</h3>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="co"># Load in data</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>agent_data <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">&quot;results/Test_Village/agents.csv&quot;</span>)</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; Rows: 10 Columns: 14</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; ── Column specification ────────────────────────────────────────────────────────</span></span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; Delimiter: &quot;,&quot;</span></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="co">#&gt; chr (3): first_name, identifier, last_name</span></span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co">#&gt; dbl (5): age, health, latitude, longitude, step</span></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; lgl (6): alive, father_id, gender, mother_id, partner, profession</span></span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; ℹ Use `spec()` to retrieve the full column specification for this data.</span></span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</span></span></code></pre></div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co"># Grab just the location data</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>agent_location <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">latitude =</span> agent_data<span class="sc">$</span>latitude, <span class="at">longitude =</span> agent_data<span class="sc">$</span>longitude)</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co"># create a map </span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>leaflet<span class="sc">::</span><span class="fu">leaflet</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  leaflet<span class="sc">::</span><span class="fu">addTiles</span>() <span class="sc">%&gt;%</span>  <span class="co"># Add default OpenStreetMap map tiles</span></span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  leaflet<span class="sc">::</span><span class="fu">addMarkers</span> (<span class="at">data =</span> agent_location) <span class="co"># Add agent locations</span></span></code></pre></div>
-<div class="leaflet html-widget html-fill-item" id="htmlwidget-93ba398c50649940de02" style="width:288px;height:288px;"></div>
-<script type="application/json" data-for="htmlwidget-93ba398c50649940de02">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org/copyright/\">OpenStreetMap<\/a>,  <a href=\"https://opendatacommons.org/licenses/odbl/\">ODbL<\/a>"}]},{"method":"addMarkers","args":[[33.90619893349395,33.92890056108278,33.95046730396491,33.96926034718439,33.98701802874602,33.99711863153767,34.01048355505023,34.03849540538307,34.04911169844831,34.06455422842561],[-118.0155728071077,-117.9980841864213,-117.9756874154355,-117.9559613718545,-117.9352578017894,-117.9190678543444,-117.9013519658321,-117.8783315379299,-117.8603749616291,-117.8457733583158],null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},null,null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[33.90619893349395,34.06455422842561],"lng":[-118.0155728071077,-117.8457733583158]}},"evals":[],"jsHooks":[]}</script>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># Load in data</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>agent_data <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_csv</span>(<span class="st">&quot;./results/Central_Park/resources.csv&quot;</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; Rows: 100000 Columns: 3</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; ── Column specification ────────────────────────────────────────────────────────</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; Delimiter: &quot;,&quot;</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; dbl (3): name, quantity, step</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; ℹ Use `spec()` to retrieve the full column specification for this data.</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="co">#&gt; ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># Filter the results down to just the last day</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>data<span class="ot">&lt;-</span>agent_data[agent_data<span class="sc">$</span>step <span class="sc">==</span> <span class="dv">10000</span>, ]</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">barplot</span>(data<span class="sc">$</span>quantity, <span class="at">names.arg=</span>data<span class="sc">$</span>name, <span class="at">main=</span><span class="st">&quot;Wealth Distribution&quot;</span>, <span class="at">xlab=</span><span class="st">&quot;Agent&quot;</span>, <span class="at">ylab=</span><span class="st">&quot;$&quot;</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
 </div>
 </div>
 </div>

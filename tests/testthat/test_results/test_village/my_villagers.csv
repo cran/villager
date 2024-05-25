@@ -1,4 +1,4 @@
-identifier,first_name,last_name,mother_id,father_id,profession,partner,gender,alive,age,health
-0dd6cab5-e3fb-4605-84bb-70f4414114fa,Kirsten,Taylor,NA,NA,Farmer,e2ab27b4-ba9d-4233-844a-8cd55191dd9f,NA,TRUE,13873,100
-e2ab27b4-ba9d-4233-844a-8cd55191dd9f,Joshua,Thompson,NA,NA,Farmer,0dd6cab5-e3fb-4605-84bb-70f4414114fa,NA,TRUE,12048,100
-cdeb7036-cad1-4136-be69-7c0d7226b84b,Mariylyyn,Thompson,0dd6cab5-e3fb-4605-84bb-70f4414114fa,e2ab27b4-ba9d-4233-844a-8cd55191dd9f,Farmer,NA,NA,TRUE,14968,100
+age,alive,father_id,first_name,gender,health,identifier,last_name,mother_id,partner,profession,step
+9127,TRUE,NA,Kirsten,NA,100,8ff6d4ee-40eb-484f-b92b-927d86c5cee5,Taylor,NA,4b3315cc-bdff-43dc-8e8e-bf4163bae632,Farmer,2
+7302,TRUE,NA,Joshua,NA,100,4b3315cc-bdff-43dc-8e8e-bf4163bae632,Thompson,NA,8ff6d4ee-40eb-484f-b92b-927d86c5cee5,Farmer,2
+10222,TRUE,4b3315cc-bdff-43dc-8e8e-bf4163bae632,Mariylyyn,NA,100,07e61afd-fb0e-4a50-942a-8edbdef8fe77,Thompson,8ff6d4ee-40eb-484f-b92b-927d86c5cee5,NA,Farmer,2

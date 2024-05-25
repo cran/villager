@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -39,11 +39,11 @@ resource_expiration <- R6::R6Class("resource",
 )
 
 ## -----------------------------------------------------------------------------
-initial_condition <- function(current_state, model_data, winik_mgr, resource_mgr) {
+initial_condition <- function(current_state, model_data, agent_mgr, resource_mgr) {
   for (i in 1:10) {
     name <- runif(1, 0.0, 100)
-    new_winik <- winik$new(first_name <- name, last_name <- "Smith")
-    winik_mgr$add_winik(new_winik)
+    new_agent <- agent$new(first_name <- name, last_name <- "Smith")
+    agent_mgr$add_agent(new_agent)
   }
   # Create two new resources at the current date (The first day)
   corn <- resource_expiration$new("Corn", 10, current_state$step)
@@ -54,7 +54,7 @@ initial_condition <- function(current_state, model_data, winik_mgr, resource_mgr
 
 ## -----------------------------------------------------------------------------
 # Create the model that, each day, checks to see whether or not any resource expire
-model <- function(current_state, previous_state, model_data, winik_mgr, resource_mgr) {
+model <- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) {
   # Loop over all of the resources and check if any expire
   for (resource in resource_mgr$get_resources()) {
     # Figure out how many days have passed

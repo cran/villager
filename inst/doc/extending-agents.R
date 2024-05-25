@@ -1,4 +1,4 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -10,8 +10,8 @@ library(villager)
 library(leaflet)
 
 ## -----------------------------------------------------------------------------
-gps_winik <- R6::R6Class("winik",
-  inherit = villager::winik,
+gps_agent <- R6::R6Class("agent",
+  inherit = villager::agent,
   public = list(
     age = NULL,
     alive = NULL,
@@ -59,7 +59,7 @@ gps_winik <- R6::R6Class("winik",
     },
 
     as_table = function() {
-      winik_table <- data.frame(
+      agent_table <- data.frame(
         age = self$age,
         alive = self$alive,
         father_id = self$father_id,
@@ -74,39 +74,39 @@ gps_winik <- R6::R6Class("winik",
         latitude = self$latitude,
         longitude = self$longitude
       )
-      return(winik_table)
+      return(agent_table)
     }
   )
 )
 
 
 ## -----------------------------------------------------------------------------
-initial_condition <- function(current_state, model_data, winik_mgr, resource_mgr) {
+initial_condition <- function(current_state, model_data, agent_mgr, resource_mgr) {
   # Create the initial villagers
-  test_agent <- gps_winik$new(first_name="Lewis", last_name="Taylor", age=9125, latitude=33.8785486, longitude=-118.0434921)
-  winik_mgr$add_winik(test_agent)
+  test_agent <- gps_agent$new(first_name="Lewis", last_name="Taylor", age=9125, latitude=33.8785486, longitude=-118.0434921)
+  agent_mgr$add_agent(test_agent)
 }
 
 ## -----------------------------------------------------------------------------
-test_model <- function(current_state, previous_state, model_data, winik_mgr, resource_mgr) {
-  # Loop over all the winiks (just one at the moment)
-  for (winik in winik_mgr$get_living_winiks()) {
+test_model <- function(current_state, previous_state, model_data, agent_mgr, resource_mgr) {
+  # Loop over all the agents (just one at the moment)
+  for (agent in agent_mgr$get_living_agents()) {
     # Generate new coordinates
-    latitude <- winik$latitude + runif(1, 0.01, 0.03)
-    longitude <- winik$longitude + runif(1, 0.01, 0.03)
-    winik$latitude <- latitude
-    winik$longitude <- longitude
+    latitude <- agent$latitude + runif(1, 0.01, 0.03)
+    longitude <- agent$longitude + runif(1, 0.01, 0.03)
+    agent$latitude <- latitude
+    agent$longitude <- longitude
   }
 }
 
 ## -----------------------------------------------------------------------------
-los_angeles <- village$new("Test_Village", initial_condition, test_model, gps_winik)
+los_angeles <- village$new("Test_Village", initial_condition, test_model, gps_agent)
 simulator <- simulation$new(10, list(los_angeles))
 simulator$run_model()
 
 ## -----------------------------------------------------------------------------
 # Load in data
-agent_data <- readr::read_csv("results/Test_Village/winiks.csv")
+agent_data <- readr::read_csv("results/Test_Village/agents.csv")
 
 # Grab just the location data
 agent_location <- data.frame(latitude = agent_data$latitude, longitude = agent_data$longitude)

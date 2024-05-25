@@ -25,7 +25,7 @@ Creates a new State
 \describe{
 \item{\code{step}}{The time step that the state is relevant to}
 
-\item{\code{winik_states}}{A list of winik states}
+\item{\code{agent_states}}{A list of agent states}
 
 \item{\code{resource_states}}{A list of resource states}
 }
@@ -34,20 +34,20 @@ Creates a new State
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{village_state$new()}}
-\item \href{#method-clone}{\code{village_state$clone()}}
+\item \href{#method-village_state-new}{\code{village_state$new()}}
+\item \href{#method-village_state-clone}{\code{village_state$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-village_state-new"></a>}}
+\if{latex}{\out{\hypertarget{method-village_state-new}{}}}
 \subsection{Method \code{new()}}{
 Initializes all of the properties in the state to the ones passed in. This should
 be called by subclasses during initialization.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{village_state$new(
   step = 0,
-  winik_states = vector(),
+  agent_states = vector(),
   resource_states = vector()
 )}\if{html}{\out{</div>}}
 }
@@ -57,7 +57,7 @@ be called by subclasses during initialization.
 \describe{
 \item{\code{step}}{The time step that the state is relevant to}
 
-\item{\code{winik_states}}{A vector of tibbles representing the states of the winiks}
+\item{\code{agent_states}}{A vector of tibbles representing the states of the agents}
 
 \item{\code{resource_states}}{A vector of tibbles representing the states of the resources}
 }
@@ -70,8 +70,8 @@ representation.
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-village_state-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-village_state-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{

@@ -2,13 +2,10 @@
 % Please edit documentation in R/model_data.R
 \name{model_data}
 \alias{model_data}
-\title{R6 Class representing data that's external from resources and winiks}
+\title{Model Data}
 \description{
-R6 Class representing data that's external from resources and winiks
+R6 Class representing data that's external from resources and agents
 
-R6 Class representing data that's external from resources and winiks
-}
-\details{
 It contains a single variable, 'events' for when the data holds a list of events
 }
 \section{Public fields}{
@@ -21,13 +18,13 @@ It contains a single variable, 'events' for when the data holds a list of events
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{model_data$new()}}
-\item \href{#method-clone}{\code{model_data$clone()}}
+\item \href{#method-model_data-new}{\code{model_data$new()}}
+\item \href{#method-model_data-clone}{\code{model_data$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-model_data-new"></a>}}
+\if{latex}{\out{\hypertarget{method-model_data-new}{}}}
 \subsection{Method \code{new()}}{
 Creates a new model_data object
 \subsection{Usage}{
@@ -39,8 +36,8 @@ A new model data object
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-clone"></a>}}
-\if{latex}{\out{\hypertarget{method-clone}{}}}
+\if{html}{\out{<a id="method-model_data-clone"></a>}}
+\if{latex}{\out{\hypertarget{method-model_data-clone}{}}}
 \subsection{Method \code{clone()}}{
 The objects of this class are cloneable with this method.
 \subsection{Usage}{
